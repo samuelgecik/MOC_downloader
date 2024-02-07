@@ -65,5 +65,5 @@ class LinkScraper:
         """
         main_site = self.website[: self.website.find("/", 8)]
         download_page = requests.get(main_site + self.get_download_link())
-        soup = BeautifulSoup(download_page.content, "html.parser")
-        return self.get_video_lectures(soup)
+        self.soup = BeautifulSoup(download_page.content, "html.parser")
+        return self.get_video_lectures()

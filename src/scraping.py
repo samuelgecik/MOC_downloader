@@ -11,18 +11,9 @@ class LinkScraper:
             website (str): The URL of the MIT course website to scrape.
         """
         self.website = website
-        self.course_name = self.get_course_name()
         self.page = requests.get(website)
         self.soup = BeautifulSoup(self.page.content, "html.parser")
-
-    def get_course_name(self):
-        """
-        Retrieves the course name from the website URL.
-
-        Returns:
-            str: The course name.
-        """
-        return self.website[self.website.rfind("/", 0, -1) :].replace("/", "").replace("-", " ").title()
+        self.download_links = self.get_all_links()
 
 
     def get_download_link(self):

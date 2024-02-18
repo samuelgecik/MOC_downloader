@@ -12,13 +12,6 @@ class Downloader():
         self.sizes = self.get_sizes(self.session)
         self.total_size = 0
 
-    async def get_sizes(self):
-        sizes = []
-        for url in self.download_links:
-            async with self.session.get(url) as response:
-                sizes.append(int(response.headers['Content-Length']))
-        return sizes
-
 
     async def download_file(self, session, url, filename):
         async with session.get(url) as response:

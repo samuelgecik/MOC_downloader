@@ -9,12 +9,14 @@ class Video:
         self.url = url
         self.session = session
         self.name = self.get_name()
-        self.size = self.get_size()
+        self.size = None
         self.download = True
 
-        def get_name(self):
-            return self.url[self.url.rfind("/") + 1 :]
-        
-        async def get_size(self):
-            async with self.session.get(url) as response:
-                return int(response.headers['Content-Length'])
+    def get_name(self):
+        return self.url[self.url.rfind("/") + 1 :]
+    
+    async def get_size(self):
+        if self.size is None:  # Only make the request if size hasn't been retrieved yet
+            async with self.session.get(self.url) as response:
+                self.size = int(response.headers['Content-Length'])
+        return self.size

@@ -1,16 +1,16 @@
 import aiohttp
 import asyncio
-from .scraping import LinkScraper
-from .video import Video
+from scraping import LinkScraper
+from video import Video
 
 TIMEOUT = aiohttp.ClientTimeout(total=60*60)
 
 
 class CourseInfo:
-    def __init__(self, videos: list[Video], course_name, total_size) -> None:
+    def __init__(self, videos: list[Video], course_name) -> None:
         self.videos = videos
         self.course_name = course_name
-        self.total_size = total_size
+        self.total_size = self.get_total_size()
 
     @classmethod
     async def create(cls, scraper: LinkScraper):
@@ -20,8 +20,7 @@ class CourseInfo:
             videos = await cls.get_videos(cls, session)
             await asyncio.gather(*[video.get_size() for video in videos])
         course_name = cls.get_course_name(cls)
-        total_size = sum([video.size for video in videos])
-        return cls(videos, course_name, total_size)
+        return cls(videos, course_name)
 
     async def get_videos(self, session: aiohttp.ClientSession):
         """
@@ -39,8 +38,9 @@ class CourseInfo:
         Returns:
             str: The course name.
         """
+        website = self.website.replace("download/", "")
         return (
-            self.website[self.website.rfind("/", 0, -1) :]
+            website[website.rfind("/", 0, -1) :]
             .replace("/", "")
             .replace("-", " ")
             .title()
@@ -53,4 +53,4 @@ class CourseInfo:
         Returns:
             int: The total size of all the video lectures.
         """
-        return sum([video.size for video in self.videos])
+        return f"{sum([video.size for video in self.videos])/1024**3:.2f} GB"

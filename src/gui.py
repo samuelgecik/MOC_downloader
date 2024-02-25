@@ -6,6 +6,7 @@ from customtkinter import CTkButton, CTkLabel, CTkEntry, CTkCheckBox, CTkImage, 
 from course_info import CourseInfo
 from scraping import LinkScraper
 from downloading import Downloader
+from PIL import Image, ImageTk
 # from .downloading import Downloader
 
 class MainGUI:
@@ -52,9 +53,9 @@ class MainGUI:
         
         self.paste_button = CTkButton(
             self.canvas,
-            text="Paste",
+            text="",
             # TODO: PIL image support
-            # image=CTkImage(r"C:\Users\samo\dev\MOC_downloader\src\paste.png", size=(40, 40)),
+            image=CTkImage(Image.open(r"C:\Users\samo\dev\MOC_downloader\src\a48-1024.png"), size=(25, 25)),
             fg_color=ThemeManager.theme["CTkEntry"]["fg_color"],
             # bg_color="transparent",
             corner_radius=0,

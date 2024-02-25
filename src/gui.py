@@ -5,6 +5,7 @@ from tkinter import ttk, filedialog, PhotoImage
 from customtkinter import CTkButton, CTkLabel, CTkEntry, CTkCheckBox, CTkImage, ThemeManager
 from course_info import CourseInfo
 from scraping import LinkScraper
+from downloading import Downloader
 # from .downloading import Downloader
 
 class MainGUI:
@@ -36,14 +37,19 @@ class MainGUI:
         self.canvas = tk.Canvas(self.tab1)
         self.canvas.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
+        entry_var = tk.StringVar()
+        entry_var.set("Enter course URL here")
+        entry_var.trace_add("write", self.entry_write_callback)
         self.course_url_entry = CTkEntry(
             self.canvas,
             corner_radius=0,
             border_width=0,
-            placeholder_text="Enter course URL here",
-        )
-        self.course_url_entry.pack(fill="both", expand=True)
+            placeholder_text_color=ThemeManager.theme["CTkEntry"]["placeholder_text_color"],
 
+            textvariable=entry_var,
+        )
+        self.course_url_entry.pack(fill="both", expand=True, padx=(0, 30))
+        
         self.paste_button = CTkButton(
             self.canvas,
             text="Paste",
@@ -56,28 +62,28 @@ class MainGUI:
             width=30,
             command=self.paste_clipboard,
         )
-        self.paste_button.place(relx=1.0, rely=0.0, anchor="ne")
+        self.paste_button.place(relx=1.0, rely=0.5, anchor="e")
 
         self.get_info_button = CTkButton(
-            self.tab1, text="Get Course Info", command=self.course_info_callback
+            self.tab1, text="Get Course Info", state="disabled", command=self.course_info_callback
         )
         self.get_info_button.grid(row=1, column=0, padx=10, pady=10)
 
         self.output_button = CTkButton(
-            self.tab1, text="Choose Output Folder", command=self.select_output
+            self.tab1, text="Choose Output Folder", state="disabled", command=self.select_output
         )
         self.output_button.grid(row=2, column=0, padx=10, pady=10)
 
         self.download_button = CTkButton(
-            self.tab1, text="Download", state="normal", command=self.download
+            self.tab1, text="Download", state="disabled", command=self.download
         )
         self.download_button.grid(row=3, column=0, padx=10, pady=10)
 
-        self.course_name_label = CTkLabel(self.tab1, text="",anchor="w", text_color="gray")
-        self.course_name_label.grid(row=4, column=0, padx=10, pady=10, sticky="w")
+        self.course_name_label = CTkLabel(self.tab1, text="", anchor="w", text_color="gray")
+        self.course_name_label.grid(row=4, column=0, sticky="w")
 
         self.total_size_label = CTkLabel(self.tab1, text="", anchor="w", text_color="gray")
-        self.total_size_label.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+        self.total_size_label.grid(row=5, column=0, sticky="w")
 
         self.tab1.grid_columnconfigure(0, weight=1)
 
@@ -90,29 +96,46 @@ class MainGUI:
         #     checkbutton = CTkCheckBox(self.tab2, text=file_name, variable=var, command=self.update_total_size)
         #     checkbutton.pack(anchor='w')
         #     self.checkbuttons.append(checkbutton)`
+    
+    def entry_write_callback(self, *args):
+        if self.course_url_entry.get() == "":
+            raise ValueError("URL cannot be empty")
+        # self.scraper = LinkScraper(self.course_url_entry.get())
+        self.get_info_button.configure(state="normal")
+        self.output_button.configure(state="normal")
+        self.download_button.configure(state="normal")
+
+        
+
 
     def select_output(self):
         self.output_path = filedialog.askdirectory()
 
-    def download(self):
+    def download_callback(self):
         if self.download_button.cget("state") == "normal":
             self.download_button.configure(state="disabled")
             self.download_button.configure(text="Downloading...")
-        downloader = Downloader(self.output_path, self.scraper, self.var_list)
 
-    def update_total_size(self):
-        pass
+    async def download(self):
+        if self.output_path is None:
+            return
+        download_links = self.scraper.get_download_links()
+        downloader = Downloader(download_links, self.output_path)
+        await downloader.download([i for i, var in enumerate(self.var_list) if var.get() == 1])
+        self.download_button.configure(state="normal")
+        self.download_button.configure(text="Download")
+
     
     def course_info_callback(self):
         asyncio.run(self.get_course_info())
         self.course_name_label.configure(text="Name: " + self.course_info.course_name)
         self.total_size_label.configure(text="Total Size: " + self.course_info.total_size)
+        # TODO: Add number of files (videos, pdfs, etc.)
 
     async def get_course_info(self):
         if self.link_scraper is None:
             self.link_scraper = LinkScraper(self.course_url_entry.get())
         self.course_info = await CourseInfo.create(self.link_scraper)
-
 
     def paste_clipboard(self): 
         clipboard_content = self.master.clipboard_get()

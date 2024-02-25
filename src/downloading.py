@@ -29,4 +29,3 @@ class Downloader():
                 filename = link[link.rindex('/') + 1:]
                 tasks.append(self.download_file(session, link, filename))
             await asyncio.gather(*tasks)
- 

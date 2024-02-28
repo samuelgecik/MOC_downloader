@@ -13,6 +13,8 @@ class LinkScraper:
         self.website = website
         self.page = requests.get(website)
         self.soup = BeautifulSoup(self.page.content, "html.parser")
+        # TODO: Video names are not being scraped
+        # TODO: download_links to video_links
         self.download_links = self.get_all_links()
 
 

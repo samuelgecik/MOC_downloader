@@ -1,5 +1,4 @@
 import aiohttp
-import asyncio
 
 TIMEOUT = aiohttp.ClientTimeout(total=60*60)
 

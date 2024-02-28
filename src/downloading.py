@@ -2,20 +2,20 @@ import aiohttp
 import asyncio
 from tqdm import tqdm
 
-TIMEOUT = aiohttp.ClientTimeout(total=60*60)
+TIMEOUT = aiohttp.ClientTimeout(total=60 * 60)
 
-class Downloader():
-    def __init__(self, download_links, output_folder):
-        self.download_links = download_links
+
+class Downloader:
+    def __init__(self, video_links, output_folder):
+        self.video_links = video_links
         self.output_folder = output_folder
         self.session = aiohttp.ClientSession(timeout=TIMEOUT)
         self.sizes = self.get_sizes(self.session)
         self.total_size = 0
 
-
     async def download_file(self, session, url, filename):
         async with session.get(url) as response:
-            with open(filename, 'wb') as f:
+            with open(filename, "wb") as f:
                 total_downloaded = 0
                 async for chunk in response.content.iter_any():
                     f.write(chunk)
@@ -25,7 +25,7 @@ class Downloader():
     async def download(self, indicies: list):
         async with self.session as session:
             tasks = []
-            for link in [self.download_links[x] for x in indicies]:
-                filename = link[link.rindex('/') + 1:]
+            for link in [self.video_links[x] for x in indicies]:
+                filename = link[link.rindex("/") + 1 :]
                 tasks.append(self.download_file(session, link, filename))
             await asyncio.gather(*tasks)

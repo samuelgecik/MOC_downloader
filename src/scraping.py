@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from pprint import pprint
 
+
 class LinkScraper:
     def __init__(self, website):
         """
@@ -13,10 +14,7 @@ class LinkScraper:
         self.website = website
         self.page = requests.get(website)
         self.soup = BeautifulSoup(self.page.content, "html.parser")
-        # TODO: Video names are not being scraped
-        # TODO: download_links to video_links
-        self.download_links = self.get_all_links()
-
+        self.video_links, self.video_names = self.get_all_videos()
 
     def get_download_link(self):
         """
@@ -41,19 +39,17 @@ class LinkScraper:
         video_lectures = self.soup.find_all(
             "div", id="resource-list-container-lecture-videos"
         )
-        # TODO: Video names are not being scraped
         video_names = video_lectures[0].find_all(class_="resource-list-title")
-        pprint(video_lectures)
+        video_names = [name.text.replace("Lecture", "Lec.") for name in video_names]
         download_paragraphs = video_lectures[0].find_all(
             "a", class_="resource-thumbnail"
         )
-        pprint(download_paragraphs)
-        download_links = []
+        video_links = []
         for paragraph in download_paragraphs:
-            download_links.append(paragraph["href"])
-        return download_links
+            video_links.append(paragraph["href"])
+        return video_names, video_links
 
-    def get_all_links(self):
+    def get_all_videos(self):
         """
         Retrieves all the download links for the course.
 
@@ -64,6 +60,6 @@ class LinkScraper:
         download_page = requests.get(main_site + self.get_download_link())
         self.soup = BeautifulSoup(download_page.content, "html.parser")
         return self.get_video_lectures()
-    
+
     def __str__(self):
-        return f"LinkScraper({self.website}, {self.download_links})"
+        return f"LinkScraper({self.website}, {self.video_links})"

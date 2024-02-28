@@ -3,7 +3,7 @@ import asyncio
 from scraping import LinkScraper
 from video import Video
 
-TIMEOUT = aiohttp.ClientTimeout(total=60*60)
+TIMEOUT = aiohttp.ClientTimeout(total=60 * 60)
 
 
 class CourseInfo:
@@ -28,7 +28,7 @@ class CourseInfo:
         Returns:
             list: A list of Video objects.
         """
-        return [Video(url, session) for url in self.scraper.download_links]
+        return [Video(url, session, name) for url in self.scraper.video_links]
 
     def get_course_name(self):
         """
@@ -45,7 +45,7 @@ class CourseInfo:
             .replace("-", " ")
             .title()
         )
-    
+
     def get_total_size(self):
         """
         Retrieves the total size of all the video lectures.

@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-
+from pprint import pprint
 
 class LinkScraper:
     def __init__(self, website):
@@ -41,9 +41,13 @@ class LinkScraper:
         video_lectures = self.soup.find_all(
             "div", id="resource-list-container-lecture-videos"
         )
+        # TODO: Video names are not being scraped
+        video_names = video_lectures[0].find_all(class_="resource-list-title")
+        pprint(video_lectures)
         download_paragraphs = video_lectures[0].find_all(
             "a", class_="resource-thumbnail"
         )
+        pprint(download_paragraphs)
         download_links = []
         for paragraph in download_paragraphs:
             download_links.append(paragraph["href"])
@@ -60,3 +64,6 @@ class LinkScraper:
         download_page = requests.get(main_site + self.get_download_link())
         self.soup = BeautifulSoup(download_page.content, "html.parser")
         return self.get_video_lectures()
+    
+    def __str__(self):
+        return f"LinkScraper({self.website}, {self.download_links})"

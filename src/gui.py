@@ -2,7 +2,7 @@ import ctypes
 import asyncio
 import tkinter as tk
 from tkinter import ttk, filedialog, PhotoImage
-from customtkinter import CTkButton, CTkLabel, CTkEntry, CTkCheckBox, CTkImage, ThemeManager
+from customtkinter import CTkButton, CTkLabel, CTkEntry, CTkCheckBox, CTkImage, ThemeManager, CTkTabview
 from course_info import CourseInfo
 from scraping import LinkScraper
 from downloading import Downloader
@@ -19,13 +19,18 @@ class MainGUI:
         #  Set the scaling factor
         # self.master.tk.call("tk", "scaling", 2.0)
 
-        self.tab_control = ttk.Notebook(self.master)
+        # self.tab_control = ttk.Notebook(self.master)
 
-        self.tab1 = ttk.Frame(self.tab_control)
-        self.tab_control.add(self.tab1, text="Download Course")
+        # self.tab1 = ttk.Frame(self.tab_control)
+        # self.tab_control.add(self.tab1, text="Download Course")
 
-        self.tab2 = ttk.Frame(self.tab_control)
-        self.tab_control.add(self.tab2, text="Content Selection")
+        # self.tab2 = ttk.Frame(self.tab_control)
+        # self.tab_control.add(self.tab2, text="Content Selection")
+
+        self.tab_control = CTkTabview(self.master, corner_radius=0, border_width=0)
+        self.tab1 = self.tab_control.add("Download Course")
+        self.tab2 = self.tab_control.add("Content Selection")
+        
 
         self.create_widgets()
 
@@ -55,13 +60,13 @@ class MainGUI:
             self.canvas,
             text="",
             # TODO: PIL image support
-            image=CTkImage(Image.open(r"C:\Users\samo\dev\MOC_downloader\src\a48-1024.png"), size=(25, 25)),
+            image=CTkImage(Image.open(r"C:\Users\samo\dev\MOC_downloader\src\paste_blue.png"), size=(25, 25)),
             fg_color=ThemeManager.theme["CTkEntry"]["fg_color"],
             # bg_color="transparent",
             corner_radius=0,
             hover=False,
             width=30,
-            command=self.paste_clipboard,
+            command=self.paste_clipboard_callback,
         )
         self.paste_button.place(relx=1.0, rely=0.5, anchor="e")
 
@@ -71,7 +76,7 @@ class MainGUI:
         self.get_info_button.grid(row=1, column=0, padx=10, pady=10)
 
         self.output_button = CTkButton(
-            self.tab1, text="Choose Output Folder", state="disabled", command=self.select_output
+            self.tab1, text="Choose Output Folder", state="disabled", command=self.select_output_callback
         )
         self.output_button.grid(row=2, column=0, padx=10, pady=10)
 
@@ -91,13 +96,21 @@ class MainGUI:
         self.checkbuttons = []
         self.var_list = []
 
-        # for i, file_name in enumerate(self.scraper.get_file_names()):
-        #     var = tk.IntVar()
-        #     self.var_list.append(var)
-        #     checkbutton = CTkCheckBox(self.tab2, text=file_name, variable=var, command=self.update_total_size)
-        #     checkbutton.pack(anchor='w')
-        #     self.checkbuttons.append(checkbutton)`
+        for i, video in enumerate(self.course_info.videos):
+            var = tk.IntVar()
+            self.var_list.append(var)
+            self.checkbuttons.append(CTkCheckBox(self.tab2, text=video.title, var=var))
+            self.checkbuttons[i].grid(row=i, column=0, sticky="w")
     
+##########################################
+##### Callbacks and async functions ######
+##########################################
+
+    def paste_clipboard_callback(self): 
+        clipboard_content = self.master.clipboard_get()
+        self.course_url_entry.delete(0, "end")
+        self.course_url_entry.insert(0, clipboard_content)
+
     def entry_write_callback(self, *args):
         if self.course_url_entry.get() == "":
             raise ValueError("URL cannot be empty")
@@ -106,10 +119,7 @@ class MainGUI:
         self.output_button.configure(state="normal")
         self.download_button.configure(state="normal")
 
-        
-
-
-    def select_output(self):
+    def select_output_callback(self):
         self.output_path = filedialog.askdirectory()
 
     def download_callback(self):
@@ -126,7 +136,6 @@ class MainGUI:
         self.download_button.configure(state="normal")
         self.download_button.configure(text="Download")
 
-    
     def course_info_callback(self):
         asyncio.run(self.get_course_info())
         self.course_name_label.configure(text="Name: " + self.course_info.course_name)
@@ -138,10 +147,6 @@ class MainGUI:
             self.link_scraper = LinkScraper(self.course_url_entry.get())
         self.course_info = await CourseInfo.create(self.link_scraper)
 
-    def paste_clipboard(self): 
-        clipboard_content = self.master.clipboard_get()
-        self.course_url_entry.delete(0, "end")
-        self.course_url_entry.insert(0, clipboard_content)
 
 
 ctypes.windll.shcore.SetProcessDpiAwareness(True)

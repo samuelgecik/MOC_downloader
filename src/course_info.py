@@ -15,7 +15,6 @@ class CourseInfo:
     @classmethod
     async def create(cls, scraper: LinkScraper):
         cls.scraper = scraper
-        cls.website = scraper.website
         async with aiohttp.ClientSession(timeout=TIMEOUT) as session:
             videos = await cls.get_videos(cls, session)
             await asyncio.gather(*[video.get_size() for video in videos])
@@ -38,7 +37,8 @@ class CourseInfo:
         Returns:
             str: The course name.
         """
-        website = self.website.replace("download/", "")
+        # remove the "download/" from the end of the URL
+        website = self.scraper.website.replace("download/", "")
         return (
             website[website.rfind("/", 0, -1) :]
             .replace("/", "")

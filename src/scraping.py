@@ -47,7 +47,7 @@ class LinkScraper:
         video_links = []
         for paragraph in download_paragraphs:
             video_links.append(paragraph["href"])
-        return video_names, video_links
+        return video_links, video_names
 
     def get_all_videos(self):
         """

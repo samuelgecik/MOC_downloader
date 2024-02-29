@@ -28,7 +28,7 @@ class CourseInfo:
         Returns:
             list: A list of Video objects.
         """
-        return [Video(url, session, name) for url in self.scraper.video_links]
+        return [Video(url, name, session) for url, name in zip(self.scraper.video_links, self.scraper.video_names)]
 
     def get_course_name(self):
         """
